@@ -15,16 +15,17 @@ function columnToLetter(column) {
   return letter;
 }
 
-app.post('/update-sheet', async (req, res) => {
+app.all('/update-sheet', async (req, res) => {
   try {
+    // מאפשר לקרוא את הפרמטרים גם מתוך ה-URL (קריאת GET) וגם מתוך ה-Body (קריאת POST)
     const {
       spreadsheetId,
       sheetName,
-      searchColumnNum,   // למשל 2 (עמודה B)
-      updateColumnNum,   // למשל 5 (עמודה E)
-      searchValue,       // למשל "3"
-      updateValue        // למשל "פ"
-    } = req.body;
+      searchColumnNum,
+      updateColumnNum,
+      searchValue,
+      updateValue
+    } = Object.keys(req.query).length ? req.query : req.body;
 
     // הגדרת החיבור באמצעות משתני סביבה (Environment Variables) ב-Render
     const auth = new google.auth.JWT(
