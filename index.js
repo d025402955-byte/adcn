@@ -25,7 +25,12 @@ app.all('/update-sheet', async (req, res) => {
       updateColumnNum,
       searchValue,
       updateValue
-    } = Object.keys(req.query).length ? req.query : req.body;
+    } = { ...req.body, ...req.query };
+
+    // בדיקה בסיסית שכל הפרמטרים ההכרחיים קיימים
+    if (!spreadsheetId || !sheetName || !searchColumnNum || !updateColumnNum || !searchValue) {
+      return res.status(400).send('שגיאה: חסרים פרמטרים חיוניים בבקשה');
+    }
 
     // הגדרת החיבור באמצעות משתני סביבה (Environment Variables) ב-Render
     const auth = new google.auth.JWT(
@@ -77,35 +82,7 @@ app.all('/update-sheet', async (req, res) => {
       },
     });
 
-    // 3. אופציונלי: החלת עיצוב פורמט טקסט מפורש (Plain Text) על התא
-    // הערה: שימוש ב-valueInputOption: 'RAW' לרוב מספיק, אך קוד זה מקבע את הפורמט בגיליון
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId,
-      requestBody: {
-        requests: [
-          {
-            repeatCell: {
-              range: {
-                sheetId: 0, // אם יש מספר גיליונות, מומלץ להביא את ה-sheetId המדויק
-                startRowIndex: rowIndex - 1,
-                endRowIndex: rowIndex,
-                startColumnIndex: parseInt(updateColumnNum) - 1,
-                endColumnIndex: parseInt(updateColumnNum)
-              },
-              cell: {
-                userEnteredFormat: {
-                  numberFormat: {
-                    type: 'TEXT'
-                  }
-                }
-              },
-              fields: 'userEnteredFormat.numberFormat'
-            }
-          }
-        ]
-      }
-    });
-
+    // החזרת תשובה תקינה
     res.send({ status: 'success', message: `שורה ${rowIndex} עודכנה בהצלחה בעמודה ${updateLetter}` });
 
   } catch (error) {
